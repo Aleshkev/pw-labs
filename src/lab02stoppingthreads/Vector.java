@@ -100,6 +100,7 @@ public class Vector {
             throw new RuntimeException(exception);
         }
 
+        // If the threads operated on a single variable, with += not being an atomic operation, the code would be wrong.
         int result = 0;
         for (var runnable : runnables) result += runnable.result;
         return result;
