@@ -1,3 +1,8 @@
+# Ignore files without an extension
+*
+!/**/
+!*.*
+
 ### IntelliJ IDEA ###
 out/
 !**/src/main/**/out/
@@ -29,3 +34,9 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.a
