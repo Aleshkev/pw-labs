@@ -32,6 +32,7 @@ public class BlockingQueueTest {
         try {
             Thread.sleep(timeoutMs);
         } catch (InterruptedException e) {
+            System.out.println("timeout");
             e.printStackTrace();
         }
 
