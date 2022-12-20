@@ -40,3 +40,8 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 *.a
+
+Testing/
+cmake-build-debug
+a.txt
+*.cbp
