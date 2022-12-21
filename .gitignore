@@ -49,3 +49,4 @@ build/
 *:Zone*
 *.iml
 *.class
+.nfs*

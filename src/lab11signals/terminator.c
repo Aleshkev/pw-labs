@@ -49,6 +49,7 @@ int parent(pid_t child_pid) {
   sigset_t signals_to_wait_for;
   sigemptyset(&signals_to_wait_for);
   sigaddset(&signals_to_wait_for, SIGINT);
+  sigaddset(&signals_to_wait_for, SIGCHLD);
 
   // Block signals to ensure we don't handle them with default handlers between
   // waits.
@@ -61,16 +62,24 @@ int parent(pid_t child_pid) {
     printf("Parent: got signal >>%s<< from %d\n", strsignal(info.si_signo),
            info.si_pid);
 
+    if (info.si_signo == SIGCHLD) break;
+
     printf(
         "Sending SIGINT to child. Signal again within 1 second to "
         "terminate.\n");
+    kill(child_pid, SIGINT);
 
     int ret = sigtimedwait_seconds(&signals_to_wait_for, &info, 1.0);
     if (ret == -1)  // Timeout.
       continue;
+    else if (info.si_signo == SIGCHLD)  // Child exited in the meantime.
+      break;
     else {
       printf("Parent: got second signal >>%s<< from %d\n",
              strsignal(info.si_signo), info.si_pid);
+
+      printf("Sending SIGKILL to child.\n");
+      kill(child_pid, SIGKILL);
       break;
     }
   }
