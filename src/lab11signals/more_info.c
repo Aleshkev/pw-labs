@@ -10,8 +10,8 @@
 #include "err.h"
 
 #define N_CHILDREN 5
-#define MY_SIGNAL SIGUSR1
-// #define MY_SIGNAL (SIGRTMIN + 1)
+// #define MY_SIGNAL SIGUSR1
+#define MY_SIGNAL (SIGRTMIN + 1)
 
 void handler(int sig, siginfo_t* info, void* more)
 {
@@ -22,7 +22,8 @@ void handler(int sig, siginfo_t* info, void* more)
 int child(pid_t parent_pid)
 {
     fprintf(stderr, "Child %d: sending signal\n", getpid());
-    ASSERT_SYS_OK(kill(parent_pid, MY_SIGNAL));
+    union sigval val = {.sival_int = 0};
+    ASSERT_SYS_OK(sigqueue(parent_pid, MY_SIGNAL, val));
     fprintf(stderr, "Child %d: ending.\n\n", getpid());
     return 0;
 }
@@ -38,6 +39,11 @@ int main()
     action.sa_flags = SA_SIGINFO;
     ASSERT_SYS_OK(sigaction(MY_SIGNAL, &action, NULL));
 
+    sigset_t block_mask;
+    sigemptyset(&block_mask);
+    sigaddset(&block_mask, MY_SIGNAL);
+    ASSERT_SYS_OK(sigprocmask(SIG_BLOCK, &block_mask, NULL));
+
     // Start children.
     for (int i = 0; i < N_CHILDREN; ++i) {
         pid_t child_pid = fork();
@@ -47,12 +53,8 @@ int main()
         else
             continue;
     }
-
     // Block MY_SIGNAL. Some signals may get delivered before that.
-    sigset_t block_mask;
-    sigemptyset(&block_mask);
-    sigaddset(&block_mask, MY_SIGNAL);
-    ASSERT_SYS_OK(sigprocmask(SIG_BLOCK, &block_mask, NULL));
+
 
     fprintf(stderr, "Parent: will start sleeping in a moment.\n");
     sleep(5);
